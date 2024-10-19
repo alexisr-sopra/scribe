@@ -5,74 +5,16 @@ const finalValue = document.getElementById("final-value");
 // Références pour les nouveaux éléments du DOM
 const importBtn = document.getElementById('import-btn');
 const fileInput = document.getElementById('file-input');
+const infoTableBody = document.querySelector("#info-table tbody");
 
-// Object that stores values of minimum and maximum angle for a value
-const rotationValues = [
-  { minDegree: 0, maxDegree: 30, value: 2 },
-  { minDegree: 31, maxDegree: 90, value: 1 },
-  { minDegree: 91, maxDegree: 150, value: 6 },
-  { minDegree: 151, maxDegree: 210, value: 5 },
-  { minDegree: 211, maxDegree: 270, value: 4 },
-  { minDegree: 271, maxDegree: 330, value: 3 },
-  { minDegree: 331, maxDegree: 360, value: 2 },
-];
-
-// Size of each piece (default values, to be updated with CSV)
-let data = [16, 16, 16, 16, 16, 16];
-
-// Background color for each piece
-var pieColors = [
-  "#8b35bc",
-  "#b163da",
-  "#8b35bc",
-  "#b163da",
-  "#8b35bc",
-  "#b163da",
-];
-
-// Create chart
-let myChart = new Chart(wheel, {
-  // Plugin for displaying text on pie chart
-  plugins: [ChartDataLabels],
-  // Chart Type Pie
-  type: "pie",
-  data: {
-    // Labels (initial default values, to be updated with CSV)
-    labels: [1, 2, 3, 4, 5, 6],
-    // Settings for dataset/pie
-    datasets: [
-      {
-        backgroundColor: pieColors,
-        data: data,
-      },
-    ],
-  },
-  options: {
-    // Responsive chart
-    responsive: true,
-    animation: { duration: 0 },
-    plugins: {
-      // Hide tooltip and legend
-      tooltip: false,
-      legend: {
-        display: false,
-      },
-      // Display labels inside pie chart
-      datalabels: {
-        color: "#ffffff",
-        formatter: (_, context) => context.chart.data.labels[context.dataIndex],
-        font: { size: 24 },
-      },
-    },
-  },
-});
+let myChart = null;
+let rotationValues = [];
 
 // Display value based on the randomAngle
 const valueGenerator = (angleValue) => {
   for (let i of rotationValues) {
-    // If the angleValue is between min and max then display it
     if (angleValue >= i.minDegree && angleValue <= i.maxDegree) {
-      finalValue.innerHTML = `<p>Value: ${i.value}</p>`;
+      finalValue.innerHTML = `<p>Participant: ${i.value}</p>`;
       spinBtn.disabled = false;
       break;
     }
@@ -81,23 +23,18 @@ const valueGenerator = (angleValue) => {
 
 // Spinner count
 let count = 0;
-// 100 rotations for animation and last rotation for result
 let resultValue = 101;
 
 // Start spinning
 spinBtn.addEventListener("click", () => {
+  if (!myChart) return;
+
   spinBtn.disabled = true;
-  // Empty final value
   finalValue.innerHTML = `<p>Good Luck!</p>`;
-  // Generate random degrees to stop at
-  let randomDegree = Math.floor(Math.random() * (355 - 0 + 1) + 0);
-  // Interval for rotation animation
+  let randomDegree = Math.floor(Math.random() * 360);
   let rotationInterval = window.setInterval(() => {
-    // Set rotation for piechart
     myChart.options.rotation = myChart.options.rotation + resultValue;
-    // Update chart with new value;
     myChart.update();
-    // If rotation > 360 reset it back to 0
     if (myChart.options.rotation >= 360) {
       count += 1;
       resultValue -= 5;
@@ -117,10 +54,9 @@ const readCSV = (file) => {
   reader.onload = function (e) {
     const text = e.target.result;
     const rows = text.split("\n").map(row => row.split(";"));
-
-    // Extraction des noms de participants et ajustement de la roue
-    const participants = rows[0].slice(1);  // Première ligne, sauf le premier élément
+    const participants = rows[0].slice(1);
     updateWheel(participants);
+    updateTable(participants); // Appel à la fonction pour afficher le tableau
   };
   reader.readAsText(file);
 };
@@ -128,21 +64,74 @@ const readCSV = (file) => {
 // Fonction pour mettre à jour la roue en fonction des participants
 const updateWheel = (participants) => {
   const numParticipants = participants.length;
+  const data = Array(numParticipants).fill(100 / numParticipants);
+  const pieColors = Array(numParticipants).fill().map((_, i) => i % 2 === 0 ? "#0e6db5" : "#0b5791");
+  const sliceAngle = 360 / numParticipants;
 
-  // Mise à jour des sections et couleurs
-  const data = Array(numParticipants).fill(100 / numParticipants);  // Part égale pour chaque participant
-  const pieColors = Array(numParticipants).fill().map((_, i) => i % 2 === 0 ? "#8b35bc" : "#b163da");
+  rotationValues = participants.map((participant, index) => {
+    let maxDegree = (90 - index * sliceAngle) % 360;
+    let minDegree = (90 - (index + 1) * sliceAngle + 1) % 360;
 
-  // Mise à jour du graphique
-  myChart.data.labels = participants;
-  myChart.data.datasets[0].data = data;
-  myChart.data.datasets[0].backgroundColor = pieColors;
-  myChart.update();
+    // Si maxDegree ou minDegree sont négatifs ou égaux à 0, on ajoute 360
+    if (maxDegree <= 0) {
+      maxDegree = 360 + maxDegree;
+    }
+    if (minDegree <= 0) {
+      minDegree = 360 + minDegree;
+    }
+
+    return {
+      minDegree: Math.round(minDegree),
+      maxDegree: Math.round(maxDegree),
+      value: participant,
+    };
+  });
+
+  myChart = new Chart(wheel, {
+    plugins: [ChartDataLabels],
+    type: "pie",
+    data: {
+      labels: participants,
+      datasets: [
+        {
+          backgroundColor: pieColors,
+          data: data,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      animation: { duration: 0 },
+      plugins: {
+        tooltip: false,
+        legend: { display: false },
+        datalabels: {
+          color: "#ffffff",
+          formatter: (_, context) => context.chart.data.labels[context.dataIndex],
+          font: { size: 14 },
+        },
+      },
+    },
+  });
+};
+
+// Fonction pour mettre à jour le tableau d'informations
+const updateTable = (participants) => {
+  infoTableBody.innerHTML = ""; // Clear existing rows
+  rotationValues.forEach(participantData => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${participantData.value}</td>
+      <td>${Math.round(participantData.minDegree)}</td>
+      <td>${Math.round(participantData.maxDegree)}</td>
+    `;
+    infoTableBody.appendChild(row);
+  });
 };
 
 // Ajoute un événement pour afficher le sélecteur de fichiers lors du clic sur le bouton "Import CSV"
 importBtn.addEventListener('click', () => {
-  fileInput.click(); // Ouvre l'explorateur de fichiers pour sélectionner un fichier CSV
+  fileInput.click();
 });
 
 // Lorsque le fichier est sélectionné, on le lit
