@@ -119,7 +119,7 @@ const updateWheel = (participants, dernierPassage) => {
 
         return {
             ...rotation,
-            minDegree: Math.round(minDegree),
+            minDegree: Math.round(minDegree) -1,
             maxDegree: Math.round(maxDegree),
             correctedAngle: correctedAngle
         };
