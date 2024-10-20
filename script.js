@@ -13,8 +13,9 @@ let rotationValues = [];
 
 // Display value based on the randomAngle
 const valueGenerator = (angleValue) => {
+  const adjustedAngle = (angleValue - 90) % 360; // Ajout de 90 pour ajuster la comparaison
   for (let i of rotationValues) {
-      if (angleValue >= i.minDegree && angleValue < i.maxDegree) { // Ajustement : '<' au lieu de '<='
+      if (adjustedAngle >= i.minDegree && adjustedAngle < i.maxDegree) {
           finalValue.innerHTML = `<p>Participant: ${i.value}</p>`;
           spinBtn.disabled = false;
           break;
