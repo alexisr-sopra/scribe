@@ -13,9 +13,11 @@ let rotationValues = [];
 
 // Display value based on the randomAngle
 const valueGenerator = (angleValue) => {
-  const adjustedAngle = (angleValue - 90) % 360; // Ajout de 90 pour ajuster la comparaison
+  const adjustedAngle = ((angleValue - 90) % 360 + 360) % 360;
   for (let i of rotationValues) {
-      if (adjustedAngle >= i.minDegree && adjustedAngle < i.maxDegree) {
+
+    console.log(`adjustedAngle: ${adjustedAngle.toFixed(2)}, minDegree: ${i.minDegree}, maxDegree: ${i.maxDegree}`);
+      if (adjustedAngle > i.minDegree && adjustedAngle <= i.maxDegree) {
           finalValue.innerHTML = `<p>Participant: ${i.value}</p>`;
           spinBtn.disabled = false;
           break;
@@ -91,7 +93,7 @@ const updateWheel = (participants, dernierPassage) => {
 
         // Base angle et malus
         const baseAngle = 360 / numParticipants;
-        const malus = 0.5 * (weeksPassed ** 2) / numParticipants;
+        const malus = 0.5 * (weeksPassed ** 2.5) / numParticipants;
         const totalAngle = baseAngle + malus;
 
         // Ajout aux plages d'angles
@@ -119,7 +121,7 @@ const updateWheel = (participants, dernierPassage) => {
 
         return {
             ...rotation,
-            minDegree: Math.round(minDegree) -1,
+            minDegree: Math.round(minDegree),
             maxDegree: Math.round(maxDegree),
             correctedAngle: correctedAngle
         };
@@ -127,6 +129,7 @@ const updateWheel = (participants, dernierPassage) => {
 
     // Correction de la plage pour le premier participant
     rotationValues[0].minDegree = 360; // Le premier participant doit aller jusqu'à 360°
+    //rotationValues[participants.length-1].maxDegree = 1; 
 
     // S'assurer que toutes les plages sont positives et correctes
     for (let i = 0; i < rotationValues.length; i++) {
@@ -138,7 +141,6 @@ const updateWheel = (participants, dernierPassage) => {
 
     // Créer un tableau de données à partir des angles corrigés
     const chartData = rotationValues.map(rotation => rotation.correctedAngle);
-
     // Création de la roue avec les angles corrigés
     myChart = new Chart(wheel, {
         plugins: [ChartDataLabels],
