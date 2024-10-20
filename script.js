@@ -5,6 +5,7 @@ const finalValue = document.getElementById("final-value");
 // Références pour les nouveaux éléments du DOM
 const importBtn = document.getElementById('import-btn');
 const fileInput = document.getElementById('file-input');
+const randomAngle = document.getElementById('random-angle');
 const infoTableBody = document.querySelector("#info-table tbody");
 
 let myChart = null;
@@ -12,13 +13,13 @@ let rotationValues = [];
 
 // Display value based on the randomAngle
 const valueGenerator = (angleValue) => {
-    for (let i of rotationValues) {
-        if (angleValue >= i.minDegree && angleValue < i.maxDegree) { // Ajustement : '<' au lieu de '<='
-            finalValue.innerHTML = `<p>Participant: ${i.value}</p>`;
-            spinBtn.disabled = false;
-            break;
-        }
-    }
+  for (let i of rotationValues) {
+      if (angleValue >= i.minDegree && angleValue < i.maxDegree) { // Ajustement : '<' au lieu de '<='
+          finalValue.innerHTML = `<p>Participant: ${i.value}</p>`;
+          spinBtn.disabled = false;
+          break;
+      }
+  }
 };
 
 // Spinner count
@@ -30,12 +31,12 @@ spinBtn.addEventListener("click", () => {
     if (!myChart) return;
 
     spinBtn.disabled = true;
-    finalValue.innerHTML = `<p>Good Luck!</p>`;
+    finalValue.innerHTML = `<p>Good Luck!</p>;`
 
     let randomDegree = Math.floor(Math.random() * 360);
 
     // Affichage de l'angle choisi
-    document.getElementById("random-angle").innerHTML = `<p>Angle choisi : ${randomDegree}°</p>`;
+    //document.getElementById("random-angle").innerHTML = `<p>Angle choisi : ${randomDegree}°</p>;`
 
     let rotationInterval = window.setInterval(() => {
         myChart.options.rotation = myChart.options.rotation + resultValue;
@@ -169,23 +170,23 @@ const updateWheel = (participants, dernierPassage) => {
 
 // Fonction pour mettre à jour le tableau d'informations avec participants et dernier passage
 const updateTable = (participants, dernierPassage) => {
-    infoTableBody.innerHTML = ""; // Effacer les lignes existantes
-    participants.forEach((participant, index) => {
-        const minAngle = rotationValues[index].minDegree;
-        const maxAngle = rotationValues[index].maxDegree;
-        const malus = rotationValues[index].malus; // Récupérer le malus
-        const weeksPassed = rotationValues[index].weeksPassed; // Récupérer weeksPassed
+  infoTableBody.innerHTML = ""; // Effacer les lignes existantes
+  participants.forEach((participant, index) => {
+      const minAngle = rotationValues[index].minDegree;
+      const maxAngle = rotationValues[index].maxDegree;
+      const malus = rotationValues[index].malus; // Récupérer le malus
+      const weeksPassed = rotationValues[index].weeksPassed; // Récupérer weeksPassed
 
-        const row = document.createElement("tr");
-        row.innerHTML = `
-            <td>${participant}</td>
-            <td>${dernierPassage[index]}</td>
-            <td>${malus.toFixed(2)}°</td> <!-- Affiche le malus en degrés -->
-            <td>${(maxAngle - minAngle).toFixed(2)}° (${minAngle}-${maxAngle})</td> <!-- Affiche la plage d'angles -->
-            <td>${weeksPassed}</td>
-        `;
-        infoTableBody.appendChild(row);
-    });
+      const row = document.createElement("tr");
+      row.innerHTML = `
+          <td>${participant}</td>
+          <td>${dernierPassage[index]}</td>
+          <td>${malus.toFixed(2)}°</td> <!-- Affiche le malus en degrés -->
+          <td>${(maxAngle - minAngle).toFixed(2)}° (${minAngle}-${maxAngle})</td> <!-- Affiche la plage d'angles -->
+          <td>${weeksPassed}</td>
+      `;
+      infoTableBody.appendChild(row);
+  });
 };
 
 // Gestion de l'importation de fichiers CSV
